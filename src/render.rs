@@ -7,50 +7,33 @@ pub trait BasicHTMLRender {
     fn render(&self) -> Option<String>;
 }
 
+fn basic_row(a: &str, b: &str, c: &str) -> String {
+    format!("<tr><td><em>{}</em></td> <td><strong>{}</strong></td> \
+                              <td>{}</td></tr>",
+            a,
+            b,
+            c)
+}
+
+fn or_empty(s: &Option<String>) -> &str {
+    s.as_ref().map(|s| s as &str).unwrap_or("")
+}
+
 impl BasicHTMLRender for slack_api::Message {
     fn render(&self) -> Option<String> {
         use slack_api::Message::*;
-        match self.clone() {
-            Standard { ts, text, user, .. } => {
-                Some(format!("<tr><td><em>{}</em></td> <td><strong>{}</strong></td> \
-                              <td>{}</td></tr>",
-                             ts,
-                             user.unwrap_or("".to_string()).clone(),
-                             text.unwrap_or("".to_string()).clone())
-                    .to_string())
+        match self {
+            &Standard { ref ts, ref text, ref user, .. } => {
+                Some(basic_row(ts, or_empty(user), or_empty(text)))
             }
-            ChannelJoin { ts, text, user, .. } => {
-                Some(format!("<tr><td><em>{}</em></td> <td><strong>{}</strong></td> \
-                              <td>{}</td></tr>",
-                             ts,
-                             user,
-                             text)
-                    .to_string())
+            &ChannelJoin { ref ts, ref text, ref user, .. } => Some(basic_row(ts, user, text)),
+            &FileShare { ref ts, ref user, ref file, .. } => {
+                let modtext = format!("<a href=\"{}\">Heres a file!</a>", file.permalink);
+                Some(basic_row(ts, user, &modtext))
             }
-            FileShare { ts, user, file, .. } => {
-                Some(format!("<tr><td><em>{}</em></td> <td><strong>{}</strong></td> \
-                              <td><a href=\"{}\">Heres a file!</a></td></tr>",
-                             ts,
-                             user,
-                             file.permalink)
-                    .to_string())
-            }
-            ChannelPurpose { ts, text, user, .. } => {
-                Some(format!("<tr><td><em>{}</em></td> <td><strong>{}</strong></td> \
-                              <td>{}</td></tr>",
-                             ts,
-                             user,
-                             text)
-                    .to_string())
-            }
-            ChannelTopic { ts, text, user, .. } => {
-                Some(format!("<tr><td><em>{}</em></td> <td><strong>{}</strong></td> \
-                              <td>{}</td></tr>",
-                             ts,
-                             user,
-                             text)
-                    .to_string())
-            }
+            &ChannelPurpose { ref ts, ref text, ref user, .. } => Some(basic_row(ts, user, text)),
+            &ChannelTopic { ref ts, ref text, ref user, .. } => Some(basic_row(ts, user, text)),
+            &PinnedItem { ref ts, ref text, ref user, .. } => Some(basic_row(ts, user, text)),
             // Other formats todo, and will not be rendered.
             _ => {
                 warn!("Unparsed message: {:?}", self);
