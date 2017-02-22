@@ -7,6 +7,8 @@ authors = ["James Munns <james.munns@gmail.com>"]
 # slack_api = "0.15.0"
 hyper = "0.9.18"
 rayon = "0.6"
+log = "0.3.6"
+env_logger = "0.3"
 
 [dependencies.slack_api]
 git = "https://github.com/jamesmunns/slack-rs-api"

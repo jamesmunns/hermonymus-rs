@@ -2,24 +2,23 @@ extern crate slack_api;
 extern crate hyper;
 extern crate rayon;
 
+#[macro_use]
+extern crate log;
+extern crate env_logger;
+
 use rayon::prelude::*;
 
-use std::io::Write;
 mod render;
 use render::BasicHTMLRender;
 
-macro_rules! println_stderr(
-    ($($arg:tt)*) => { {
-        let r = writeln!(&mut ::std::io::stderr(), $($arg)*);
-        r.expect("failed printing to stderr");
-    } }
-);
-
 fn main() {
+    env_logger::init().expect("Logging Failure!");
+
     let x = hyper::Client::new();
     let api_key = std::env::var("API_KEY").expect("Set env var 'API_KEY'");
-    let y = slack_api::rtm::start(&x, &api_key, None, None);
+    let _ = slack_api::rtm::start(&x, &api_key, None, None);
 
+    info!("Starting Cache...");
     procedure(&x, &api_key);
 
 }
@@ -39,7 +38,7 @@ fn procedure<R: slack_api::SlackWebRequestSender>(client: &R, token: &str)
     let x = ch_resp.channels
         .par_iter()
         .map(|c| {
-            println_stderr!("Getting {:?}", c.name);
+            info!("Getting {:?}", c.name);
             HistoryChannel {
                 channel: c.clone(),
                 messages: get_channel_history(client, token, &c.id, None),
@@ -74,7 +73,7 @@ fn get_channel_history<R: slack_api::SlackWebRequestSender>(client: &R,
     if let Ok(response) = resp {
         response.messages.iter().map(|x| x.clone()).collect()
     } else {
-        println_stderr!("{:?}", resp);
+        warn!("Unable to process {:?}", channel_id);
         Vec::new()
     }
 }

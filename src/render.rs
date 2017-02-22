@@ -1,12 +1,4 @@
 use slack_api;
-use std::io::Write;
-
-macro_rules! println_stderr(
-    ($($arg:tt)*) => { {
-        let r = writeln!(&mut ::std::io::stderr(), $($arg)*);
-        r.expect("failed printing to stderr");
-    } }
-);
 
 pub static TABLE_HEADER: &'static str = "<table><thead><tr><th>Time</th><th>User</th><th>Message</th></tr></thead><tbody>";
 pub static TABLE_FOOTER: &'static str = "</tbody></table>";
@@ -59,8 +51,9 @@ impl BasicHTMLRender for slack_api::Message {
                              text)
                     .to_string())
             }
+            // Other formats todo, and will not be rendered.
             _ => {
-                println_stderr!("{:?}", self);
+                warn!("Unparsed message: {:?}", self);
                 None
             }
         }
