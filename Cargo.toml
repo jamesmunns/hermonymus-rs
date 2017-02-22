@@ -1,0 +1,13 @@
+[package]
+name = "hermonymus"
+version = "0.1.0"
+authors = ["James Munns <james.munns@gmail.com>"]
+
+[dependencies]
+# slack_api = "0.15.0"
+hyper = "0.9.18"
+rayon = "0.6"
+
+[dependencies.slack_api]
+git = "https://github.com/jamesmunns/slack-rs-api"
+branch = "patch-1"
